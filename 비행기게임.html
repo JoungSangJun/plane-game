@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>비행기게임</title>
+
+    <style>
+        #myCanvas {
+            margin-top: 20px;
+            margin-left: 380px;
+            position: absolute;
+        }
+
+        body {
+            background-color: gray;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="myCanvas" width="800px" height="600px"
+    style="background:url('images/earth.png'); background-size: cover">></canvas>
+
+    <script>
+        var ctx = myCanvas.getContext("2d");
+        var x_pos = myCanvas.width / 2; //비행기 위치 x값
+        var y_pos = myCanvas.height - 80; //비행기 위치 y값
+        var plane_width = 70; //비행기 넓이
+        var plane_height = 70; //비행기 높이
+        var plane = new Image();
+        plane.src = "images/plane.png";
+        var y_shoot = 480; //투사체 y값
+        var shoot_width = 5; //투사체 넓이
+        var shoot_height = 30; //투사체 높이
+        var enemy_shoot_width = new Array(); //적 투사체 넓이
+        var enemy_width = 70; //적 비행기 넓이
+        var enemy_height = 70; // 적 비행기 높이
+        var enemy_x_pos = new Array(); //적 비행기 x값
+        var enemy_speed = new Array(); //적 비행기 속도
+        var enemy_y_shoot = new Array();  //적 투사체 y값
+        var My_life = 3; //내 생명
+        var My_heart = new Image();
+        My_heart.src = "images/heart.png";
+        var heart_width = 25; //하트 넓이
+        var heart_height = 25; //하트 높이
+        var enemy_life = new Array(); //상대 생명
+        var enemy_number = prompt("적 비행기 수를 입력하세요", "1-4사이"); //적 비행기 수 (1~4)
+        var enemy = new Array();
+
+        for (i = 0; i < enemy_number; i++) {
+            enemy[i] = new Image();
+            enemy[i].src = "images/enemy.png";
+            enemy_life[i] = 3;
+            enemy_x_pos[i] = myCanvas.width / 2 + (100 * i);
+            enemy_speed[i] = 2;
+            enemy_y_shoot[i] = enemy_height;
+            enemy_shoot_width[i] = 5;
+        }
+
+        function my_crush(x_shoot) { //상대가 총알에 맞았을 때
+            for (i = 0; i < enemy_number; i++) {
+                if (y_shoot == 60 && x_shoot >= enemy_x_pos[i] && x_shoot <= enemy_x_pos[i] + enemy_width) {
+                    enemy_life[i] -= 1;
+                }
+                if (enemy_life[i] == 0) {
+                    enemy[i].src = "images/boom.png";
+                    enemy_speed[i] = 0;
+                    enemy_shoot_width[i] = 0;
+                }
+            }
+            switch (enemy_number) {
+                case '1':
+                    if (enemy_life[0] <= 0 && y_shoot == 60) {
+                        alert("You Win");
+                        var replay = confirm("다시 하시겠습니까?");
+                        if (replay == true) {
+                            document.location.reload();
+                        } else if (replay == false) {
+                            window.close()
+                        }
+                        break;
+                    }
+
+                case '2':
+                    if (enemy_life[0] <= 0 && enemy_life[1] <= 0 && y_shoot == 60) {
+                        alert("You Win");
+                        var replay = confirm("다시 하시겠습니까?");
+                        if (replay == true) {
+                            document.location.reload();
+                        } else if (replay == false) {
+                            window.close()
+                        }
+                        break;
+                    }
+
+                case '3':
+                    if (enemy_life[0] <= 0 && enemy_life[1] <= 0 && enemy_life[2] <= 0 && y_shoot == 60) {
+                        alert("You Win");
+                        var replay = confirm("다시 하시겠습니까?");
+                        if (replay == true) {
+                            document.location.reload();
+                        } else if (replay == false) {
+                            window.close()
+                        }
+                        break;
+                    }
+
+                case '4':
+                    if (enemy_life[0] <= 0 && enemy_life[1] <= 0 && enemy_life[2] <= 0 && enemy_life[3] <= 0 && y_shoot == 60) {
+                        alert("You Win");
+                        var replay = confirm("다시 하시겠습니까?");
+                        if (replay == true) {
+                            document.location.reload();
+                        } else if (replay == false) {
+                            window.close()
+                        }
+                        break;
+                    }
+            }
+        }
+
+        function enemy_crush(enemy_x_shoot) { //내가 총알에 맞았을 때
+            for (i = 0; i < enemy_number; i++) {
+                if (enemy_y_shoot[i] == 526 && enemy_x_shoot[i] >= x_pos && enemy_x_shoot[i] <= x_pos + plane_width) {
+                    My_life -= 1;
+                    if (My_life == 0) {
+                        plane.src = "images/boom.png";
+                        alert("You Lose");
+                        document.location.reload();
+                    }
+                }
+            }
+        }
+
+        function enemy_draw() { //적 비행기 이동 ,목숨 그리기
+            for (i = 0; i < enemy_number; i++) {
+                for (j = 0; j < enemy_life[i]; j++) {
+                    ctx.drawImage(My_heart, enemy_x_pos[i] + 20 * j, 80, heart_width, heart_height)
+                }            
+            }
+
+            for (i = 0; i < enemy_number; i++) {
+                ctx.drawImage(enemy[i], enemy_x_pos[i], 0, enemy_width, enemy_height);
+                enemy_x_pos[i] += enemy_speed[i];
+                if (enemy_x_pos[i] < 0 || enemy_x_pos[i] > myCanvas.width - enemy_width) {
+                    enemy_speed[i] = -enemy_speed[i];
+                }
+            }
+        }
+
+        function draw_plane() {//비행기 그리기 ,목숨 그리기
+            ctx.clearRect(0, 0, myCanvas.width, myCanvas.height);
+            for (i = 0; i < My_life; i++) {
+                ctx.drawImage(My_heart, x_pos + 22 * i, y_pos - 30, heart_width, heart_height);
+            }
+            ctx.drawImage(plane, x_pos, y_pos, plane_width, plane_height);
+            ctx.fillStyle = "white";
+            ctx.font = "20px Arial";
+            ctx.fillText("이동 : 방향키", 0, 20);
+            ctx.fillText("공격 : 스페이스바", 0, 45);
+        }
+
+        function keyevent(MyEvent) { //화살표 클릭시 비행기 이동
+            if (MyEvent.keyCode == 37 && x_pos > 0) { x_pos -= 10; }
+            if (MyEvent.keyCode == 39 && x_pos + plane_width < myCanvas.width) { x_pos += 10; }
+
+            if (MyEvent.keyCode == 32) { s = setInterval(plane_shoot, 10); } //space 클릭시 투사체 발사
+        }
+
+        function plane_shoot() { //투사체 이동
+            var x_shoot = x_pos + (plane_width / 2); //투사체 x값
+            ctx.fillStyle = "yellow";
+            ctx.fillRect(x_shoot, y_shoot, shoot_width, shoot_height);
+            y_shoot -= 12;
+
+            if (y_shoot == 0) {
+                clearInterval(s);
+                y_shoot = 480;
+            }
+            my_crush(x_shoot);
+        }
+
+        function enemy_shoot() {//적 비행기 투사체 발사
+            var enemy_x_shoot = new Array();
+            for (i = 0; i < enemy_number; i++) {
+                enemy_x_shoot[i] = enemy_x_pos[i] + (enemy_width / 2);
+                ctx.fillStyle = "red";
+                ctx.fillRect(enemy_x_shoot[i], enemy_y_shoot[i], enemy_shoot_width[i], shoot_height);
+                enemy_y_shoot[i] += 12;
+                if (enemy_y_shoot[i] >= 600) {
+                    clearInterval(e_s);
+                    enemy_y_shoot[i] = enemy_height;
+                }
+            }
+            enemy_crush(enemy_x_shoot);
+        }
+
+        function enemy_shoot1() { //적 투사체 발사
+            e_s = setInterval(enemy_shoot, 10);
+        }
+
+        setInterval(enemy_shoot1, 2000);
+        setInterval(draw_plane, 10);
+        setInterval(enemy_draw, 10);
+        addEventListener("keydown", keyevent);
+
+    </script>
+
+</body>
+
+</html>
